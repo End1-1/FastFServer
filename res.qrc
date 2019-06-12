@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>fastfserver.qm</file>
+        <file>app.ico</file>
+        <file>app.png</file>
+    </qresource>
+</RCC>
