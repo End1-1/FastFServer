@@ -26,6 +26,8 @@ public:
     static QString onlineReportAddress();
     static QString onlineReportPassword();
     static QString onlineReportCafeId();
+    static QString idramId();
+    static QString idramPhone();
     static void init(const QString &dbHost, const QString &dbPath, const QString &dbUser, const QString &dbPass, const QString &prefix);
 };
 

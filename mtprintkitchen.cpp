@@ -2,6 +2,7 @@
 #include "mtfilelog.h"
 #include "ptextrect.h"
 #include "pimage.h"
+#include "cnfapp.h"
 #include "msqldatabase.h"
 #include "c5printing.h"
 #include "QRCodeGenerator.h"
@@ -132,7 +133,8 @@ void MTPrintKitchen::printReceipt()
     p.setSceneParams(650, 2700, QPrinter::Portrait);
     p.setFont(font);
 
-    p.image("./logo_receipt.png", Qt::AlignHCenter);
+    QString imagePath = qApp->applicationDirPath() + "/logo_receipt.png";
+    p.image(imagePath, Qt::AlignHCenter);
     p.br();
 
     /* Header */
@@ -267,10 +269,10 @@ void MTPrintKitchen::printReceipt()
     int maskIndex = -1;
     QString encodeString = QString("%1;%2;%3;%4|%5;%6;")
             .arg("Jazzve")
-            .arg(__set_val("idramid").toString()) //IDram ID
+            .arg(__cnfapp.idramId()) //IDram ID
             .arg(fData["amount"])
             .arg(fData["order"])
-            .arg(__set_val("idramphone").toString())
+            .arg(__cnfapp.idramPhone())
             .arg("1");
 
     CQR_Encode qrEncode;

@@ -37,6 +37,7 @@ private slots:
     void on_btnClose_clicked();
     void on_btnRestart_clicked();
     void on_btnShutDown_clicked();
+    void on_btnStore_clicked();
 
 private:
     Ui::Dialog *ui;

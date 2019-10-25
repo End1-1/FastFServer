@@ -36,7 +36,7 @@ void MTcpServer::readyRead()
     if (!fSockets.contains(s)) {
         return;
     }
-    qint32 fDataSize = fSocketDataSize[s];
+    qint32 &fDataSize = fSocketDataSize[s];
     if (fDataSize == 0) {
         s->read(reinterpret_cast<char *>(&fDataSize), sizeof(qint32));
     }

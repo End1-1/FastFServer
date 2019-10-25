@@ -12,6 +12,7 @@
 #include <QSettings>
 #include <QProcess>
 #include <windows.h>
+#include <QFile>
 
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
@@ -23,6 +24,8 @@ Dialog::Dialog(QWidget *parent) :
     fCanClose = false;
     connect(&fTimer, SIGNAL(timeout()), this, SLOT(timeout()));
     fTimer.start(1000);
+    ui->btnStore->setVisible(QFile::exists(qApp->applicationDirPath() + "/VeryFastF.exe"));
+    ui->btnFastF->setVisible(QFile::exists(qApp->applicationDirPath() + "/FastF.exe"));
 }
 
 Dialog::~Dialog()
@@ -103,6 +106,9 @@ void Dialog::on_btnInstallShell_clicked()
 
 void Dialog::on_btnRestoreShell_clicked()
 {
+    if (!checkPassword()) {
+        return;
+    }
     QSettings s("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", QSettings::Registry64Format);
     s.setValue("Shell", "Explorer.exe");
     QProcess p;
@@ -122,7 +128,7 @@ void Dialog::on_btnExplorer_clicked()
 void Dialog::on_btnFastF_clicked()
 {
     QProcess p;
-    p.startDetached("C:\\FastF\\FastF.exe");
+    p.startDetached(qApp->applicationDirPath() + "/FastF.exe");
 }
 
 void Dialog::on_btnHideExplorer_clicked()
@@ -178,4 +184,10 @@ void Dialog::init()
                        .arg(__cnfapp.taxIP())
                        .arg(__cnfapp.taxPort())
                        .arg(__cnfapp.taxDept()));
+}
+
+void Dialog::on_btnStore_clicked()
+{
+    QProcess p;
+    p.startDetached(qApp->applicationDirPath() + "/VeryFastF.exe");
 }

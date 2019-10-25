@@ -182,6 +182,10 @@ QByteArray MJsonHandler::handleQuery(const QJsonObject &o)
         return handleReadyDishDone(o);
     } else if (o["query"] == "mymoney") {
         return handleMyMoney(o);
+    } else if (o["query"] == "getreminders") {
+        return handleGetReminders(o);
+    } else if (o["query"] == "updatereminder") {
+        return handleReminder(o);
     }
     jObj["reply"] = tr("Invalid query");
     QJsonDocument jDoc(jObj);
@@ -1088,6 +1092,69 @@ QByteArray MJsonHandler::handleMyMoney(const QJsonObject &o)
         jReply["mymoney"] = dr.value("QNT").toString() + " / " + dr.value("AMOUNT").toString();
     }
     return jsonreply(jReply);
+}
+
+QByteArray MJsonHandler::handleGetReminders(const QJsonObject &o)
+{
+    QMap<QString, QVariant> v;
+    DatabaseResult dr;
+    fDb.select("select r.record_id,"
+               "lpad(extract(hour from cast(r.date_register as time)),2,'0') || ':' || lpad(extract(minute from cast(r.date_register as time)),2,'0') as reg_time, "
+               "t.name as table_name, "
+               "e.lname || ' ' || e.fname as staff_name, d.name as dish_name, r.qty, "
+               "od.comments "
+               "from o_dishes_reminder r "
+               "inner join h_table t on t.id=r.table_id "
+               "inner join employes e on e.id=r.staff_id "
+               "inner join me_dishes d on d.id=r.dish_id "
+               "inner join o_dishes od on od.id=r.record_id "
+               "where r.state_id=0 "
+               "order by r.id ", v, dr);
+    QJsonArray ja;
+    for (int i = 0; i < dr.rowCount(); i++) {
+        QJsonObject jo;
+        jo["rec"] = dr.toString(i, "RECORD_ID");
+        jo["time"] = dr.toString(i, "REG_TIME");
+        jo["table"] = dr.toString(i, "TABLE_NAME");
+        jo["staff"] = dr.toString(i, "STAFF_NAME");
+        jo["qty"] = dr.toString(i, "QTY");
+        jo["state"] = 0;
+        jo["dish"] = dr.toString(i, "DISH_NAME");
+        jo["comment"] = dr.toString(i, "COMMENTS");
+        ja.append(jo);
+    }
+    QJsonObject jreply;
+    jreply["reply"] = "ok";
+    jreply["dishes"] = ja;
+    return jsonreply(jreply);
+}
+
+QByteArray MJsonHandler::handleReminder(const QJsonObject &o)
+{
+    QMap<QString, QVariant> v;
+    v[":record_id"] = o["rec"].toString();
+    v[":state_id"] = o["state"].toInt();
+    DatabaseResult dr;
+    switch (o["state"].toInt()) {
+    case 0:
+        break;
+    case 1:
+        fDb.select("update o_dishes_reminder set state_id=:state_id where record_id=:record_id", v, dr);
+        break;
+    case 2:
+        v[":date_start"] = QDateTime::fromString(o["started"].toString(), "dd.MM.yyyy HH:mm:ss");
+        fDb.select("update o_dishes_reminder set date_start=:date_start, state_id=:state_id where record_id=:record_id", v, dr);
+        break;
+    case 3:
+        v[":date_ready"] = QDateTime::fromString(o["ready"].toString(), "dd.MM.yyyy HH:mm:ss");
+        fDb.select("update o_dishes_reminder set date_ready=:date_ready, state_id=:state_id where record_id=:record_id", v, dr);
+        break;
+    }
+    QJsonObject jo;
+    jo["reply"] = "ok";
+    jo["rec"] = o["rec"];
+    jo["state"] = o["state"];
+    return jsonreply(jo);
 }
 
 QString MJsonHandler::updateOrderAmount(const QString &id)
