@@ -4,6 +4,7 @@
 #include "cnfapp.h"
 #include "mjsonhandler.h"
 #include "msqldatabase.h"
+#include "phonethread.h"
 #include "dlgconnection.h"
 #include "cnfmaindb.h"
 #include <QInputDialog>
@@ -184,6 +185,9 @@ void Dialog::init()
                        .arg(__cnfapp.taxIP())
                        .arg(__cnfapp.taxPort())
                        .arg(__cnfapp.taxDept()));
+
+    PhoneServerThread *pt = new PhoneServerThread();
+    pt->start();
 }
 
 void Dialog::on_btnStore_clicked()

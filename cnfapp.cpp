@@ -82,43 +82,45 @@ void CnfApp::init(const QString &dbHost, const QString &dbPath, const QString &d
         return;
     }
     QString settingsName = prefix.toUpper() + "-" + QHostInfo::localHostName().toUpper();
-    QSqlQuery q(db);
-    q.prepare("select fkey, fvalue from sys_cnfapp where fhost=:fhost");
-    q.bindValue(":fhost", settingsName);
-    q.exec();
-    while (q.next()) {
-        fData[q.value(0).toString()] = q.value(1).toString();
+    QSqlQuery *q = new QSqlQuery(db);
+    q->prepare("select fkey, fvalue from sys_cnfapp where fhost=:fhost");
+    q->bindValue(":fhost", settingsName);
+    q->exec();
+    while (q->next()) {
+        fData[q->value(0).toString()] = q->value(1).toString();
     }
     if (!fData.contains(TaxIP)) {
         QStringList v;
         v << TaxIP << TaxPort << TaxPassword << TaxDept;
         foreach (QString s, v) {
-            q.prepare("insert into sys_cnfapp (fhost, fkey) values (:fhost, :fkey)");
-            q.bindValue(":fhost", settingsName);
-            q.bindValue(":fkey", s);
-            q.exec();
+            q->prepare("insert into sys_cnfapp (fhost, fkey) values (:fhost, :fkey)");
+            q->bindValue(":fhost", settingsName);
+            q->bindValue(":fkey", s);
+            q->exec();
         }
     }
     if (!fData.contains(OnlineReportAddress)) {
         QStringList v;
         v << OnlineReportAddress << OnlineReportCafeId << OnlineReportPassword;
         foreach (QString s, v) {
-            q.prepare("insert into sys_cnfapp (fhost, fkey) values (:fhost, :fkey)");
-            q.bindValue(":fhost", settingsName);
-            q.bindValue(":fkey", s);
-            q.exec();
+            q->prepare("insert into sys_cnfapp (fhost, fkey) values (:fhost, :fkey)");
+            q->bindValue(":fhost", settingsName);
+            q->bindValue(":fkey", s);
+            q->exec();
         }
     }
     if (!fData.contains(IdramID)) {
         QStringList v;
         v << IdramID << IdramPhone;
         foreach (QString s, v) {
-            q.prepare("insert into sys_cnfapp (fhost, fkey) values (:fhost, :fkey)");
-            q.bindValue(":fhost", settingsName);
-            q.bindValue(":fkey", s);
-            q.exec();
+            q->prepare("insert into sys_cnfapp (fhost, fkey) values (:fhost, :fkey)");
+            q->bindValue(":fhost", settingsName);
+            q->bindValue(":fkey", s);
+            q->exec();
         }
     }
+    delete q;
     db.close();
+    db = QSqlDatabase::addDatabase("QIBASE");
     QSqlDatabase::removeDatabase("CnfApp");
 }

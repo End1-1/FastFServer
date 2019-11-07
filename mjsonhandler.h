@@ -38,8 +38,6 @@ class MJsonHandler : public QObject
     QByteArray handleReadyDishes(const QJsonObject &o);
     QByteArray handleReadyDishDone(const QJsonObject &o);
     QByteArray handleMyMoney(const QJsonObject &o);
-    QByteArray handleGetReminders(const QJsonObject &o);
-    QByteArray handleReminder(const QJsonObject &o);
     QString updateOrderAmount(const QString &id);
     int checkPassword(const QString &pwd);
     QString sessionNew();

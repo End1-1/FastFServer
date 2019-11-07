@@ -56,10 +56,17 @@ SOURCES += \
         mtcpserver.cpp \
         mtfilelog.cpp \
         mtprintkitchen.cpp \
+        phoneclientthread.cpp \
+        phonejson.cpp \
+        phonejson/phonejsonbase.cpp \
+        phonejson/phonejsondishreminders.cpp \
+        phonejson/phonejsonreminderstate.cpp \
+        phonethread.cpp \
         pimage.cpp \
         pprintscene.cpp \
         ptextrect.cpp \
-        qsystem.cpp
+        qsystem.cpp \
+        sqlthread.cpp
 
 HEADERS += \
         ../LibQREncode/bitstream.h \
@@ -91,15 +98,23 @@ HEADERS += \
         mtfilelog.h \
         mtprintkitchen.h \
         pdefaults.h \
+        phoneclientthread.h \
+        phonejson.h \
+        phonejson/phonejsonbase.h \
+        phonejson/phonejsondishreminders.h \
+        phonejson/phonejsonreminderstate.h \
+        phonethread.h \
         pimage.h \
         pprintscene.h \
         ptextrect.h \
-        qsystem.h
+        qsystem.h \
+        sqlthread.h
 
 FORMS += \
         dialog.ui \
         dlgconnection.ui
 
+INCLUDEPATH += ./phonejson
 INCLUDEPATH += C:/projects/NewTax/Src
 INCLUDEPATH += C:/OpenSSL-Win32/include
 INCLUDEPATH += C:/OpenSSL-Win32/include/openssl

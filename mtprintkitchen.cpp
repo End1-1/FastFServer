@@ -172,14 +172,18 @@ void MTPrintKitchen::printReceipt()
     p.ltext(tr("Table"), 0);
     p.rtext(fData["table"]);
     p.br();
-    p.ltext(tr("Date"), 0);
-    p.rtext(fData["taxtime"]);
-    p.br();
     p.ltext(tr("Staff"), 0);
     p.rtext(fData["staff"]);
     p.br();
+    p.setFontBold(true);
+    p.setFontSize(38);
+    p.ltext(tr("Date"), 0);
+    p.br();
+    p.ltext(fData["taxtime"], 0);
+    p.br();
     p.line(3);
     p.br(3);
+    p.setFontSize(20);
 
     /* Dishes */
     double totalPre = 0.00;
