@@ -1,7 +1,7 @@
 #ifndef SQLTHREAD_H
 #define SQLTHREAD_H
 
-#include <QThread>
+#include "threadobject.h"
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
@@ -9,37 +9,42 @@
 #include <QDateTime>
 #include <QMap>
 
-class SqlThread : public QThread
+class SqlThread : public ThreadObject
 {
     Q_OBJECT
 
 public:
-    SqlThread(QObject *parent = nullptr);
-    SqlThread(const QString &dbHost, const QString &dbName, const QString &dbUser, const QString &dbPass, const QString &dbOption, QObject *parent = nullptr);
+    SqlThread();
+    SqlThread(const QString &dbHost, const QString &dbName, const QString &dbUser, const QString &dbPass, const QString &dbOption);
     void setDatabase(const QString &dbHost, const QString &dbName, const QString &dbUser, const QString &dbPass, const QString &dbOption);
     ~SqlThread();
     QVariant &operator[](const QString &name);
     void setSqlQuery(const QString &sqlText);
     void bind(const QString &key, const QVariant &value);
+    void insert(const QString &table, const QString returnId = "id");
+    void update(const QString &table, int id);
     bool nextRow();
     int rowCount();
-    inline QString getString (const QString &columnName) { return fDbRows.at(fCursorPos).at(fColumns[columnName.toLower()]).toString(); }
-    inline int getInteger (const QString &columnName) { return fDbRows.at(fCursorPos).at(fColumns[columnName.toLower()]).toInt(); }
+    inline QVariant getValue(const QString &columnName) {return mDbRows.at(mCursorPos).at(mColumns[columnName.toLower()]); }
+    inline QString getString (const QString &columnName) { return mDbRows.at(mCursorPos).at(mColumns[columnName.toLower()]).toString(); }
+    inline int getInteger (const QString &columnName) { return mDbRows.at(mCursorPos).at(mColumns[columnName.toLower()]).toInt(); }
+    inline int getDouble (const QString &columnName) { return mDbRows.at(mCursorPos).at(mColumns[columnName.toLower()]).toDouble(); }
+    inline QDate getDate (const QString &columnName) { return mDbRows.at(mCursorPos).at(mColumns[columnName.toLower()]).toDate(); }
+    QString mLastError;
+    QMap<QString, int> mColumns;
+    QList<QList<QVariant> > mDbRows;
 
-protected:
-    virtual void run() override;
+public slots:
+    void run() override;
 
 private:
     static int mDBCounter;
     QString mDBNumber;
     QSqlDatabase mDB;
-    QMap<QString, QVariant> fBindValues;
+    QMap<QString, QVariant> mBindValues;
     QString mSqlText;
     QString lastQuery(QSqlQuery *q) const;
-    int fCursorPos;
-    QList<QList<QVariant> > fDbRows;
-    QMap<QString, int> fColumns;
-
+    int mCursorPos;
 };
 
 #endif // SQLTHREAD_H

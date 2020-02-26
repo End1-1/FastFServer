@@ -29,6 +29,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        ../FastF/cnfapp.cpp \
+        ../FastF/qnet.cpp \
         ../LibQREncode/bitstream.c \
         ../LibQREncode/mask.c \
         ../LibQREncode/mmask.c \
@@ -42,11 +44,13 @@ SOURCES += \
         ../NewTax/Src/printtaxn.cpp \
         QRCodeGenerator.cpp \
         c5printing.cpp \
-        cnfapp.cpp \
         cnfmaindb.cpp \
         databaseresult.cpp \
         dbmutexlocker.cpp \
         dlgconnection.cpp \
+        exchange/exchangedownload.cpp \
+        exchange/exchangeobject.cpp \
+        exchange/exchangeupload.cpp \
         genqrcode.cpp \
         main.cpp \
         dialog.cpp \
@@ -61,14 +65,20 @@ SOURCES += \
         phonejson/phonejsonbase.cpp \
         phonejson/phonejsondishreminders.cpp \
         phonejson/phonejsonreminderstate.cpp \
+        phonejson/threadobject.cpp \
         phonethread.cpp \
         pimage.cpp \
         pprintscene.cpp \
         ptextrect.cpp \
+        qsslserver.cpp \
         qsystem.cpp \
-        sqlthread.cpp
+        sqlthread.cpp \
+        tablelocker.cpp \
+        tableorder.cpp
 
 HEADERS += \
+        ../FastF/cnfapp.h \
+        ../FastF/qnet.h \
         ../LibQREncode/bitstream.h \
         ../LibQREncode/config.h \
         ../LibQREncode/getopt.h \
@@ -82,14 +92,17 @@ HEADERS += \
         ../LibQREncode/rscode.h \
         ../LibQREncode/split.h \
         ../NewTax/Src/printtaxn.h \
+        ../common/fastfprotocol.h \
         QRCodeGenerator.h \
         c5printing.h \
-        cnfapp.h \
         cnfmaindb.h \
         databaseresult.h \
         dbmutexlocker.h \
         dialog.h \
         dlgconnection.h \
+        exchange/exchangedownload.h \
+        exchange/exchangeobject.h \
+        exchange/exchangeupload.h \
         genqrcode.h \
         mdefined.h \
         mjsonhandler.h \
@@ -103,18 +116,25 @@ HEADERS += \
         phonejson/phonejsonbase.h \
         phonejson/phonejsondishreminders.h \
         phonejson/phonejsonreminderstate.h \
+        phonejson/threadobject.h \
         phonethread.h \
         pimage.h \
         pprintscene.h \
         ptextrect.h \
+        qsslserver.h \
         qsystem.h \
-        sqlthread.h
+        sqlthread.h \
+        tablelocker.h \
+        tableorder.h
 
 FORMS += \
         dialog.ui \
         dlgconnection.ui
 
 INCLUDEPATH += ./phonejson
+INCLUDEPATH += ./exchange
+INCLUDEPATH += C:/Projects/FastF
+INCLUDEPATH += C:/Projects/common
 INCLUDEPATH += C:/projects/NewTax/Src
 INCLUDEPATH += C:/OpenSSL-Win32/include
 INCLUDEPATH += C:/OpenSSL-Win32/include/openssl

@@ -10,6 +10,10 @@ PhoneJSONDishReminders::PhoneJSONDishReminders(QObject *parent) :
 void PhoneJSONDishReminders::run(const QJsonObject &obj)
 {
     QString state = obj["first"].toInt() == 1 ? "0,1,2" : "0";
+    QString reminder;
+    if (obj["reminder"].toString().toInt() > 0) {
+        reminder = " and r.reminder_id=" + obj["reminder"].toString();
+    }
     mSqlThread.setSqlQuery(QString("select r.record_id,"
     "lpad(extract(hour from cast(r.date_register as time)),2,'0') || ':' || lpad(extract(minute from cast(r.date_register as time)),2,'0') as reg_time, "
     "t.name as table_name, r.state_id, "
@@ -20,8 +24,8 @@ void PhoneJSONDishReminders::run(const QJsonObject &obj)
     "inner join employes e on e.id=r.staff_id "
     "inner join me_dishes d on d.id=r.dish_id "
     "inner join o_dishes od on od.id=r.record_id "
-    "where r.state_id in (%1) "
-    "order by r.id ").arg(state));
+    "where r.state_id in (%1) %2 "
+    "order by r.id ").arg(state).arg(reminder));
 
     mSqlThread.start();
 }

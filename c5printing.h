@@ -24,6 +24,8 @@ public:
 
     void setFontSize(int size);
 
+    bool newPage();
+
     void line(qreal x1, qreal y1, qreal x2, qreal y2, int lineWidth = -1);
 
     void line(int lineWidth = -1);

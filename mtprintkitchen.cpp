@@ -222,6 +222,7 @@ void MTPrintKitchen::printReceipt()
     p.br(3);
     p.line(3);
     p.setFontSize(20);
+    p.setFontBold(false);
     p.ltext(tr("Counted"), 0);
     p.rtext(float_str(totalPre, 2));
     p.br();
@@ -235,7 +236,7 @@ void MTPrintKitchen::printReceipt()
         p.rtext(fData["amount_dec"]);
         p.br();
     }
-    p.setFontSize(22);
+    p.setFontSize(26);
     p.setFontBold(true);
     p.ltext(tr("Grand total"), 0);
     p.rtext(fData["amount"]);
@@ -260,6 +261,7 @@ void MTPrintKitchen::printReceipt()
 //    }
 
     /* QRCode */
+    p.newPage();
     p.setFontSize(20);
     p.br();
     p.br();
@@ -286,18 +288,18 @@ void MTPrintKitchen::printReceipt()
     }
     int qrImageSize = qrEncode.m_nSymbleSize;
     int encodeImageSize = qrImageSize + ( QR_MARGIN * 2 );
-    QImage encodeImage( encodeImageSize, encodeImageSize, QImage::Format_Mono );
-    encodeImage.fill( 1 );
+    QImage encodeImage(encodeImageSize, encodeImageSize, QImage::Format_Mono);
+    encodeImage.fill(1);
 
     for ( int i = 0; i < qrImageSize; i++ ) {
         for ( int j = 0; j < qrImageSize; j++ ) {
             if ( qrEncode.m_byModuleData[i][j] ) {
-                encodeImage.setPixel( i + QR_MARGIN, j + QR_MARGIN, 0 );
+                encodeImage.setPixel(i + QR_MARGIN, j + QR_MARGIN, 0);
             }
         }
     }
 
-    QPixmap pix = QPixmap::fromImage( encodeImage );
+    QPixmap pix = QPixmap::fromImage(encodeImage);
     pix = pix.scaled(300, 300);
     p.image(pix, Qt::AlignHCenter);
     p.br();

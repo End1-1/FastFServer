@@ -90,6 +90,17 @@ void C5Printing::setFontSize(int size)
     fJsonData.append(o);
 }
 
+bool C5Printing::newPage()
+{
+    fTop = 0;
+    QPrinter::Orientation o = fCanvasOrientation[fCanvas];
+    fCanvas = new QGraphicsScene();
+    fCanvasList.append(fCanvas);
+    setSceneParams(fNormalWidth, fNormalHeight, o);
+    fCurrentPageIndex++;
+    return true;
+}
+
 void C5Printing::line(qreal x1, qreal y1, qreal x2, qreal y2, int lineWidth)
 {
     if (lineWidth > 0) {
@@ -225,13 +236,7 @@ bool C5Printing::br(qreal height)
     fTempTop = 0;
 
     if (fTop > fNormalHeight) {
-        fTop = 0;
-        QPrinter::Orientation o = fCanvasOrientation[fCanvas];
-        fCanvas = new QGraphicsScene();
-        fCanvasList.append(fCanvas);
-        setSceneParams(fNormalWidth, fNormalHeight, o);
-        fCurrentPageIndex++;
-        return true;
+        newPage();
     }
     return false;
 }

@@ -1,18 +1,15 @@
 #ifndef PHONECLIENTTHREAD_H
 #define PHONECLIENTTHREAD_H
 
-#include <QThread>
+#include "threadobject.h"
 #include <QTcpSocket>
 
-class PhoneClientThread : public QThread
+class PhoneClientThread : public QObject
 {
     Q_OBJECT
 public:
     PhoneClientThread(QTcpSocket *s);
     ~PhoneClientThread();
-
-protected:
-    virtual void run() override;
 
 private:
     int mHandlerCounter;

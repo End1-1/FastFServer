@@ -3,10 +3,9 @@
 #include <QJsonDocument>
 
 PhoneJSONBase::PhoneJSONBase(QObject *parent) :
-    QObject(parent),
-    mSqlThread(this)
+    QObject(parent)
 {
-    mSqlThread.setDatabase(__cnfmaindb.fHost, __cnfmaindb.fDatabase, __cnfmaindb.fUser, __cnfmaindb.fPassword, "lc_ctype=utf-8");
+    mSqlThread.setDatabase(__cnfmaindb.fHost, __cnfmaindb.fDatabase, __cnfmaindb.fUser, __cnfmaindb.fPassword, "lc_ctype=utf8");
     connect(&mSqlThread, SIGNAL(finished()), this, SLOT(queryReady()));
 }
 

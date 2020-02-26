@@ -4,7 +4,9 @@
 #include "mdefined.h"
 #include "mtprintkitchen.h"
 #include "mtfilelog.h"
+#include "exchangeobject.h"
 #include "cnfapp.h"
+#include "qnet.h"
 #include "printtaxn.h"
 #include <QUuid>
 #include <QNetworkInterface>
@@ -980,6 +982,24 @@ QByteArray MJsonHandler::handleCloseOrder(const QJsonObject &o)
         dbb.select("select sum(f_amount) from o_gift_card where f_code=:f_code", v, dr);
         if (dr.rowCount() == 0) {
             return jsonError(tr("Cannot process gift card, incorrect code"));
+        }
+    }
+
+    v[":order_id"] = order;
+    fDb.select("select order_id, costumer_id, val from costumers_history where order_id=:order_id", v, dr);
+    if (dr.rowCount() > 0) {
+        QString card = dr.toString(0, "COSTUMER_ID");
+        double val = dr.toDouble(0, "VAL");
+        v[":id"] = dr.toString(0, "ORDER_ID");
+        fDb.select("select amount from o_order where id=:id", v, dr);
+        if (dr.rowCount() > 0) {
+            QJsonObject jo;
+            jo["card"] = card;
+            jo["amount"] = dr.toDouble(0, "AMOUNT");
+            jo["val"] = val;
+            QJsonDocument jd(jo);
+            ExchangeObject *e = new ExchangeObject(EO_DISCOUNT_ACTION, jd.toJson(QJsonDocument::Compact));
+            e->start();
         }
     }
 

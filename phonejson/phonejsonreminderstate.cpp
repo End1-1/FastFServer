@@ -19,15 +19,24 @@ void PhoneJSONReminderState::run(const QJsonObject &obj)
     case 0:
         break;
     case 1:
-        query = "update o_dishes_reminder set state_id=:state_id where record_id=:record_id";
+        query = "update o_dishes_reminder set state_id=:state_id where record_id=:record_id  and state_id<5 ";
         break;
     case 2:
-        mSqlThread[":date_start"] = QDateTime::fromString(obj["started"].toString(), "dd.MM.yyyy HH:mm:ss");
-        query = "update o_dishes_reminder set date_start=:date_start, state_id=:state_id where record_id=:record_id";
+        if (obj["readyonly"].toString().toInt() == 0) {
+            mSqlThread[":date_start"] = QDateTime::currentDateTime();
+            query = "update o_dishes_reminder set date_start=:date_start, state_id=:state_id where record_id=:record_id and state_id<5 ";
+        } else {
+            mSqlThread[":date_start"] = QDateTime::currentDateTime();
+            query = "update o_dishes_reminder set date_start=:date_start,  state_id=:state_id where record_id=:record_id and state_id<5 ";
+        }
         break;
     case 3:
-        mSqlThread[":date_ready"] = QDateTime::fromString(obj["ready"].toString(), "dd.MM.yyyy HH:mm:ss");
-        query = "update o_dishes_reminder set date_ready=:date_ready, state_id=:state_id where record_id=:record_id";
+        mSqlThread[":date_ready"] = QDateTime::currentDateTime();
+        query = "update o_dishes_reminder set date_ready=:date_ready, state_id=:state_id where record_id=:record_id and state_id<5 ";
+        break;
+    case 5:
+        mSqlThread[":date_removed"] = QDateTime::currentDateTime();
+        query = "update o_dishes_reminder set date_removed=:date_removed, state_id=:state_id where record_id=:record_id";
         break;
     }
     mSqlThread.setSqlQuery(query);

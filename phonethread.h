@@ -1,19 +1,16 @@
 #ifndef PHONESERVERTHREAD_H
 #define PHONESERVERTHREAD_H
 
-#include <QThread>
+#include "threadobject.h"
 #include <QTcpServer>
 
-class PhoneServerThread : public QThread
+class PhoneServerThread : public QObject
 {
     Q_OBJECT
 
 public:
     PhoneServerThread();
     ~PhoneServerThread();
-
-protected:
-    virtual void run() override;
 
 private:
     QTcpServer fServer;

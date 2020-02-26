@@ -20,6 +20,9 @@ public:
     virtual void accept() override;
     virtual void reject() override;
 
+public slots:
+    void logMsg(const QString &msg);
+
 protected:
     void closeEvent(QCloseEvent *event) override;
 
@@ -48,5 +51,7 @@ private:
     int fStartDelay;
     void init();
 };
+
+extern Dialog *__logDialog;
 
 #endif // DIALOG_H

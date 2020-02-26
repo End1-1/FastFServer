@@ -6,6 +6,9 @@
 #include "msqldatabase.h"
 #include "phonethread.h"
 #include "dlgconnection.h"
+#include "exchangeupload.h"
+#include "exchangedownload.h"
+#include "tablelocker.h"
 #include "cnfmaindb.h"
 #include <QInputDialog>
 #include <QMessageBox>
@@ -14,6 +17,8 @@
 #include <QProcess>
 #include <windows.h>
 #include <QFile>
+
+Dialog *__logDialog = nullptr;
 
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
@@ -27,6 +32,7 @@ Dialog::Dialog(QWidget *parent) :
     fTimer.start(1000);
     ui->btnStore->setVisible(QFile::exists(qApp->applicationDirPath() + "/VeryFastF.exe"));
     ui->btnFastF->setVisible(QFile::exists(qApp->applicationDirPath() + "/FastF.exe"));
+    __logDialog = this;
 }
 
 Dialog::~Dialog()
@@ -83,6 +89,11 @@ void Dialog::timeout()
         QProcess::execute("taskkill /im taskmgr.exe /f");
     }
 #endif
+}
+
+void Dialog::logMsg(const QString &msg)
+{
+    qDebug() << msg;
 }
 
 void Dialog::on_btnConnection_clicked()
@@ -187,7 +198,13 @@ void Dialog::init()
                        .arg(__cnfapp.taxDept()));
 
     PhoneServerThread *pt = new PhoneServerThread();
-    pt->start();
+//    if (!__cnfapp.exchangeServer().isEmpty()) {
+//        ExchangeUpload *eu = new ExchangeUpload(this);
+//        ExchangeDownload *ed = new ExchangeDownload(this);
+//    }
+
+    TableLocker *tl = new TableLocker();
+    tl->start();
 }
 
 void Dialog::on_btnStore_clicked()

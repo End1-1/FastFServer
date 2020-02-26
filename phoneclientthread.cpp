@@ -3,9 +3,8 @@
 #include <QByteArray>
 
 PhoneClientThread::PhoneClientThread(QTcpSocket *s) :
-    QThread()
+    QObject()
 {
-    connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
     reset();
     mSocket = s;
     mHandlerCounter = 0;
@@ -19,16 +18,12 @@ PhoneClientThread::~PhoneClientThread()
     mSocket->deleteLater();
 }
 
-void PhoneClientThread::run()
-{
-    exec();
-}
-
 void PhoneClientThread::reset()
 {
     mDataSize = 0;
     mDataType = 0;
     mDataRead = 0;
+    mData.clear();
 }
 
 void PhoneClientThread::readyRead()
@@ -58,7 +53,7 @@ void PhoneClientThread::readyRead()
 void PhoneClientThread::disconnected()
 {
     if (mHandlerCounter == 0) {
-        quit();
+        deleteLater();
     }
 }
 
@@ -72,6 +67,6 @@ void PhoneClientThread::replyJSON(const QByteArray &data)
     mSocket->waitForBytesWritten();
     sender()->deleteLater();
     if (mHandlerCounter == 0 && mSocket->state() != QTcpSocket::ConnectedState) {
-        quit();
+        deleteLater();
     }
 }
