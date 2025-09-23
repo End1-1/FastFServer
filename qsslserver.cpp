@@ -1,3 +1,4 @@
+
 #include "qsslserver.h"
 #include <QSslSocket>
 #include <QFile>
@@ -45,6 +46,7 @@ void QSslServer::setSslProtocol(QSsl::SslProtocol p)
 
 void QSslServer::incomingConnection(qintptr handle)
 {
+//    QTcpServer::incomingConnection(handle);
     QSslSocket *sslSocket = new QSslSocket(this);
     sslSocket->setSocketDescriptor(handle);
     sslSocket->setLocalCertificate(fSslLocalCertificate);

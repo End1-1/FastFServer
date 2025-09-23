@@ -8,16 +8,9 @@
 #include <QApplication>
 
 MTcpServer::MTcpServer(QObject *parent) :
-    QThread(parent)
+    QObject(parent)
 {
-    connect(this, SIGNAL(finished()), this, SLOT(deleteLater()));
-    fServer = new QTcpServer(this);
-    fServer->setProxy(QNetworkProxy::NoProxy);
-    connect(fServer, SIGNAL(newConnection()), this, SLOT(newConnection()));
-    connect(fServer, SIGNAL(acceptError(QAbstractSocket::SocketError)), this, SLOT(acceptError(QAbstractSocket::SocketError)));
-    if (!fServer->listen(QHostAddress::Any, 888)) {
-        QMessageBox::critical(nullptr, tr("Socket error"), tr("Cannot bind on port 888"));
-    }
+
 }
 
 MTcpServer::~MTcpServer()
@@ -27,7 +20,13 @@ MTcpServer::~MTcpServer()
 
 void MTcpServer::run()
 {
-    exec();
+    fServer = new QTcpServer(this);
+    fServer->setProxy(QNetworkProxy::NoProxy);
+    connect(fServer, SIGNAL(newConnection()), this, SLOT(newConnection()));
+    connect(fServer, SIGNAL(acceptError(QAbstractSocket::SocketError)), this, SLOT(acceptError(QAbstractSocket::SocketError)));
+    if (!fServer->listen(QHostAddress::Any, 888)) {
+        QMessageBox::critical(nullptr, tr("Socket error"), tr("Cannot bind on port 888"));
+    }
 }
 
 void MTcpServer::readyRead()
@@ -41,7 +40,6 @@ void MTcpServer::readyRead()
         s->read(reinterpret_cast<char *>(&fDataSize), sizeof(qint32));
     }
     if (fDataSize <= 0) {
-        quit();
         return;
     }
     QByteArray &fData = fSockets[s];
@@ -76,7 +74,6 @@ void MTcpServer::newConnection()
         fSockets[s] = QByteArray();
         connect(s, SIGNAL(readyRead()), this, SLOT(readyRead()));
         connect(s, SIGNAL(disconnected()), this, SLOT(disconnected()));
-        qApp->processEvents();
     }
 }
 

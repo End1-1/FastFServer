@@ -125,5 +125,6 @@ void TableOrder::readyRead()
 
 void TableOrder::disconnected()
 {
+    emit finished();
     deleteLater();
 }

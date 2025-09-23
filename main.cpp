@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QTranslator>
 
+
 int main(int argc, char *argv[])
 {
 
@@ -16,7 +17,11 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
     Dialog w;
+#ifdef QT_DEBUG
+    w.show();
+#else
     w.showFullScreen();
+#endif
 
     QTranslator t;
     t.load(":/fastfserver.qm");

@@ -4,7 +4,7 @@
 #include <QThread>
 #include <QTcpServer>
 
-class MTcpServer : public QThread
+class MTcpServer : public QObject
 {
     Q_OBJECT
 
@@ -12,7 +12,7 @@ public:
     MTcpServer(QObject *parent = nullptr);
     ~MTcpServer();
 
-protected:
+public slots:
     void run();
 
 private:

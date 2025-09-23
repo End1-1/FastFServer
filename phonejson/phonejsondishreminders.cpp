@@ -25,7 +25,7 @@ void PhoneJSONDishReminders::run(const QJsonObject &obj)
     "inner join me_dishes d on d.id=r.dish_id "
     "inner join o_dishes od on od.id=r.record_id "
     "where r.state_id in (%1) %2 "
-    "order by r.id ").arg(state).arg(reminder));
+    "order by r.id ").arg(state, reminder));
 
     mSqlThread.start();
 }

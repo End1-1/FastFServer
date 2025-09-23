@@ -3,6 +3,7 @@
 #include "mtfilelog.h"
 #include "dbmutexlocker.h"
 #include <QSqlError>
+#include <QFile>
 #include <QSqlQuery>
 #include <QMutexLocker>
 
@@ -167,7 +168,7 @@ bool MSqlDatabase::insert(const QString &table, QMap<QString, QVariant> &bindVal
     QString fields = "";
     QString bind = "";
     bool first = true;
-    for (QMap<QString, QVariant>::const_iterator it = bindValues.begin(); it != bindValues.end(); it++) {
+    for (QMap<QString, QVariant>::const_iterator it = bindValues.constBegin(); it != bindValues.constEnd(); it++) {
         if (first) {
             first = false;
         } else {
@@ -177,25 +178,23 @@ bool MSqlDatabase::insert(const QString &table, QMap<QString, QVariant> &bindVal
         fields += QString(it.key()).remove(0, 1);
         bind += it.key();
     }
-    sql = sql.arg(table).arg(fields).arg(bind);
+    sql = sql.arg(table, fields, bind);
 
     QSqlQuery q(fDb);
     if (!q.prepare(sql)) {
         setLastError(q);
-        qDebug() << lastQuery(q);
         bindValues.clear();
         return false;
     }
-    for (QMap<QString, QVariant>::const_iterator it = bindValues.begin(); it != bindValues.end(); it++) {
+    for (QMap<QString, QVariant>::const_iterator it = bindValues.constBegin(); it != bindValues.constEnd(); it++) {
         q.bindValue(it.key(), it.value());
     }
     bindValues.clear();
     if (!q.exec()) {
         setLastError(q);
-        qDebug() << lastQuery(q);
         return false;
     }
-    qDebug() << lastQuery(q);
+    MTFileLog::createLog(__LOG_SQL, lastQuery(q));
     return true;
 }
 
@@ -220,10 +219,13 @@ QString MSqlDatabase::lastQuery(QSqlQuery &q)
             value = QString("'%1'").arg(value.toString().replace("'", "''"));
             break;
         case QVariant::Date:
-            value = QString("'%1'").arg(value.toDate().toString());
+            value = QString("'%1'").arg(value.toDate().toString("dd.MM.yyyy"));
             break;
         case QVariant::DateTime:
-            value = QString("'%1'").arg(value.toDateTime().toString());
+            value = QString("'%1'").arg(value.toDateTime().toString("dd.MM.yyyy HH:mm:ss"));
+            break;
+        case QVariant::Time:
+            value = QString("'%1'").arg(value.toDateTime().toString("HH:mm:ss"));
             break;
         case QVariant::Double:
             value = QString("%1").arg(value.toDouble());
@@ -249,14 +251,14 @@ QString MSqlDatabase::lastQuery(QSqlQuery &q)
 void MSqlDatabase::setLastError(QSqlQuery &q)
 {
     fLastError = q.lastError().databaseText();
-    qDebug() << fLastError;
-    qDebug() << q.lastQuery();
+    MTFileLog::createLog(__LOG_SQL_ERROR, fLastError);
+    MTFileLog::createLog(__LOG_SQL_ERROR,q.lastQuery());
 }
 
 void MSqlDatabase::setLastError(QSqlDatabase &db)
 {
     fLastError = db.lastError().databaseText();
-    qDebug() << fLastError;
+    MTFileLog::createLog(__LOG_SQL_ERROR, fLastError);
 }
 
 QString MSqlDatabase::lastError()

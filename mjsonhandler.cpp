@@ -4,15 +4,17 @@
 #include "mdefined.h"
 #include "mtprintkitchen.h"
 #include "mtfilelog.h"
-#include "exchangeobject.h"
 #include "cnfapp.h"
 #include "qnet.h"
+#include "dbdriver.h"
 #include "printtaxn.h"
 #include <QUuid>
 #include <QNetworkInterface>
 #include <QCryptographicHash>
 #include <QPrinterInfo>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMutex>
 
 QString MJsonHandler::fServerIp;
@@ -184,6 +186,10 @@ QByteArray MJsonHandler::handleQuery(const QJsonObject &o)
         return handleReadyDishDone(o);
     } else if (o["query"] == "mymoney") {
         return handleMyMoney(o);
+    } else if (o["query"] == "taxreport") {
+        return handleTaxReport(o);
+    } else if (o["query"] == "taxcancel") {
+        return handleTaxCancel(o);
     }
     jObj["reply"] = tr("Invalid query");
     QJsonDocument jDoc(jObj);
@@ -331,9 +337,9 @@ QByteArray MJsonHandler::handleDishToOrder(const QJsonObject &o)
             v[":id"] = order;
             v[":state_id"] = 1;
             v[":table_id"] = table;
-            v[":date_open"] = QDateTime::currentDateTime();
-            v[":date_close"] = QDateTime::currentDateTime();
-            v[":date_cash"] = QDate::currentDate();
+            v[":date_open"] = DbDriver::serverDateTime();
+            v[":date_close"] = DbDriver::serverDateTime();
+            v[":date_cash"] = DbDriver::serverDate();
             v[":staff_id"] = fSessions[o["session"].toString()];
             v[":print_qty"] = 0;
             v[":amount_inc"] = 0;
@@ -730,7 +736,7 @@ QByteArray MJsonHandler::handleReceipt(const QJsonObject &o)
     v[":state_id"] = DISH_STATE_NORMAL;
     fDb.select("select d.name, od.qty, od.price, od.qty*od.price as total, "
               "od.qty-od.printed_qty as printed,mt.adgcode, d.id as dishid, "
-              "od.payment_mod as pm "
+              "od.payment_mod as pm, od.emarks "
               "from o_dishes od "
               "left join me_dishes d on d.id=od.dish_id "
               "left join me_types mt on mt.id=d.type_id "
@@ -748,6 +754,7 @@ QByteArray MJsonHandler::handleReceipt(const QJsonObject &o)
         dish["adgcode"] = dr.value(i, "ADGCODE").toString();
         dish["id"] = dr.value(i, "DISHID").toString();
         dish["pm"] = dr.value(i, "PM").toString();
+        dish["emarks"]= dr.value(i, "EMARKS").toString();
         dishes.append(dish);
     }
 
@@ -765,7 +772,6 @@ QByteArray MJsonHandler::handleReceipt(const QJsonObject &o)
 
     QJsonObject obj;
     DatabaseResult dpay;
-    QString sn, firm, address, fiscal, hvhh, rseq, devnum, dept, time;
     v[":fid"] = order;
     fDb.select("select * from o_tax where fid=:fid", v, dpay, false);
     if (dpay.rowCount() == 0) {
@@ -778,16 +784,17 @@ QByteArray MJsonHandler::handleReceipt(const QJsonObject &o)
             fDb.select("delete from o_tax where fid=:fid", v, dtemp, false);
             nh = true;
         } else {
-            PrintTaxN::parseResponse(dpay.value("JSON").toString(), firm, hvhh, fiscal, rseq, sn, address, devnum, time);
+            QJsonObject js = QJsonDocument::fromJson(dpay.value("JSON").toString().toUtf8()).object();
+
             MTFileLog::createLog(__LOG_RECEIPT, order + ", mark 7-3");
-            data["sn"] = sn;
-            data["firm"] = firm;
-            data["address"] = address;
-            data["fiscal"] = fiscal;
-            data["taxnumber"] = QString("%1").arg(rseq.toInt(), 8, 10, QChar('0'));
-            data["hvhh"] = hvhh;
-            data["gh"] = devnum;
-            data["taxtime"] = time;
+            data["sn"] = js["sn"].toString();
+            data["firm"] = js["taxpayer"].toString();;
+            data["address"] = js["address"].toString();
+            data["fiscal"] = js["fiscal"].toString();
+            data["taxnumber"] = QString("%1").arg(js["rseq"].toInt(), 8, 10, QChar('0'));
+            data["hvhh"] = js["tin"].toString();
+            data["gh"] = js["crn"].toString();
+            data["taxtime"] = QDateTime::currentDateTime().toString("dd/MM/yyyy HH:mm:ss");
             data["dept"] = __cnfmaindb.fTaxDepartment;
             nh = false;
         }
@@ -797,9 +804,13 @@ QByteArray MJsonHandler::handleReceipt(const QJsonObject &o)
         double serv = data["amount_inc_value"].toDouble();
         double disc = data["amount_dec_value"].toDouble();
         //int mode = o["mode"].toString().toInt();
-        PrintTaxN pt(__cnfapp.taxIP(), __cnfapp.taxPort(), __cnfapp.taxPassword(), "true", this);
+        PrintTaxN pt(__cnfapp.taxIP(), __cnfapp.taxPort(), __cnfapp.taxPassword(), "true", "3", "3", this);
+        pt.fPartnerTin =  o["tax"].toString();
         for (int i = 0; i < dr.rowCount(); i++) {
             double price = dishes.at(i)["price"].toDouble();
+            if (dishes.at(i)["emarks"].isEmpty() == false) {
+                pt.fEmarks.append(dishes.at(i)["emarks"]);
+            }
             if (price < 1) {
                 continue;
             }
@@ -807,10 +818,15 @@ QByteArray MJsonHandler::handleReceipt(const QJsonObject &o)
             if (dishes.at(i)["pm"].toInt() == PaymentServiceDiscount) {
                 tempDisc = disc;
             }
-            pt.addGoods(__cnfmaindb.fTaxDepartment, dishes.at(i)["adgcode"], dishes.at(i)["id"], dishes.at(i)["dish"], price, dishes.at(i)["qty"].toDouble(), tempDisc);
+            pt.addGoods(__cnfmaindb.fTaxDepartment.toInt(),
+                        dishes.at(i)["adgcode"],
+                    dishes.at(i)["id"],
+                    dishes.at(i)["dish"],
+                    price,
+                    dishes.at(i)["qty"].toDouble(), tempDisc);
         }
         if (data["amount_inc"].toDouble() > 0.001) {
-            pt.addGoods(__cnfmaindb.fTaxDepartment, dishes.at(0)["adgcode"], "1", tr("Service"), data["amount_inc"].toDouble(), 1.0, disc);
+            pt.addGoods(__cnfmaindb.fTaxDepartment.toInt(), dishes.at(0)["adgcode"], "1", tr("Service"), data["amount_inc"].toDouble(), 1.0, disc);
         }
         QString jsonIn, jsonOut, err;
         int result = 0;
@@ -830,17 +846,18 @@ QByteArray MJsonHandler::handleReceipt(const QJsonObject &o)
             v[":fresult"] = -999;
             fDb.insert("o_tax_log", v);
         }
-        if (result != pt_err_ok) {
+        if (result != pt_err_ok ) {
            return jsonError(tr("Tax print error") + "\r\n" + err + jsonOut);
         } else {
             MTFileLog::createLog(__LOG_RECEIPT, order + ", mark 8-4");
-            PrintTaxN::parseResponse(jsonOut, firm, hvhh, fiscal, rseq, sn, address, devnum, time);
+
             MTFileLog::createLog(__LOG_RECEIPT, order + ", mark 8-5");
 
+            QJsonObject jt = QJsonDocument::fromJson(jsonOut.toUtf8()).object();
             v[":fid"] = order;
-            v[":ffiscal"] = fiscal;
-            v[":fnumber"] = rseq;
-            v[":fhvhh"] = hvhh;
+            v[":ffiscal"] = jt["fiscal"].toString();
+            v[":fnumber"] = jt["rseq"].toInt();
+            v[":fhvhh"] = jt["tin"].toString();
             v[":fcash"] = cash;
             v[":fcard"] = card;
             v[":json"] = jsonOut;
@@ -848,19 +865,17 @@ QByteArray MJsonHandler::handleReceipt(const QJsonObject &o)
                 return jsonError(fDb.lastError());
             }
 
-            data["sn"] = sn;
-            data["firm"] = firm;
-            data["address"] = address;
-            data["fiscal"] = fiscal;
-            data["taxnumber"] = QString("%1").arg(rseq.toInt(), 8, 10, QChar('0'));
-            data["hvhh"] = hvhh;
-            data["gh"] = devnum;
-            data["taxtime"] = time;
+            data["sn"] = jt["sn"].toString();
+            data["firm"] = jt["taxpayer"].toString();
+            data["address"] = jt["address"].toString();
+            data["fiscal"] = jt["fiscal"].toString();
+            data["taxnumber"] = QString("%1").arg(jt["rseq"].toInt(), 8, 10, QChar('0'));
+            data["hvhh"] = jt["tin"].toString();
+            data["gh"] = jt["crn"].toString();
+            data["taxtime"] = QDateTime::currentDateTime().toString("dd/MM/yyyy HH:mm:ss");;
             data["dept"] = __cnfmaindb.fTaxDepartment;
 
-            if (address.length() == 0) {
-                return jsonError(tr("Firm address is empty"));
-            }
+
         }
     }
 
@@ -997,9 +1012,6 @@ QByteArray MJsonHandler::handleCloseOrder(const QJsonObject &o)
             jo["card"] = card;
             jo["amount"] = dr.toDouble(0, "AMOUNT");
             jo["val"] = val;
-            QJsonDocument jd(jo);
-            ExchangeObject *e = new ExchangeObject(EO_DISCOUNT_ACTION, jd.toJson(QJsonDocument::Compact));
-            e->start();
         }
     }
 
@@ -1096,7 +1108,7 @@ QByteArray MJsonHandler::handleMyMoney(const QJsonObject &o)
 {
     QMap<QString, QVariant> v;
     QJsonObject jReply;
-    v[":date_cash"] =  "'" + QDate::currentDate().toString("dd.MM.yyyy") + "'";
+    v[":date_cash"] =  "'" + DbDriver::serverDate().toString("dd.MM.yyyy") + "'";
     v[":state_id"] = ORDER_STATE_CLOSED;
     v[":staff_id"] = fSessions[o["session"].toString()];
     DatabaseResult dr;
@@ -1107,6 +1119,68 @@ QByteArray MJsonHandler::handleMyMoney(const QJsonObject &o)
         jReply["mymoney"] = dr.value("AMOUNT").toString();
         jReply["mymoney"] = dr.value("QNT").toString() + " / " + dr.value("AMOUNT").toString();
     }
+    return jsonreply(jReply);
+}
+
+QByteArray MJsonHandler::handleTaxReport(const QJsonObject &o)
+{
+    QString in, out, err;
+    qDebug() << o;
+    PrintTaxN pt(__cnfapp.taxIP(), __cnfapp.taxPort(), __cnfapp.taxPassword(), "true", "3", "3", this);
+    pt.printReport(QDate::fromString(o["d1"].toString(), "dd.MM.yyyy HH:mm:ss"),
+            QDate::fromString(o["d2"].toString(), "dd.MM.yyyy HH:mm:ss"),
+            o["type"].toString().toInt(), in, out, err);
+    QJsonObject jReply;
+    jReply["reply"] = err.isEmpty() ? "ok" : err;
+
+    QMap<QString, QVariant> v;
+    v[":fdate"] = QDateTime::currentDateTime();
+    v[":forder"] = "REPORT";
+    v[":fin"] = in;
+    v[":fout"] = out;
+    v[":ferr"] = err;
+    fDb.insert("o_tax_log", v);
+
+    return jsonreply(jReply);
+}
+
+QByteArray MJsonHandler::handleTaxCancel(const QJsonObject &o)
+{
+    QJsonObject jReply;
+    QMap<QString, QVariant> bv;
+    bv[":fid"] = o["order"].toString();
+    DatabaseResult dr;
+    fDb.select("select json from o_tax where fid=:fid", bv, dr, false);
+    if (dr.rowCount() == 0) {
+        jReply["reply"] = "Invalid order id";
+        return jsonreply(jReply);
+    }
+
+    QJsonObject tjson = QJsonDocument::fromJson(dr.toString(0, "JSON").toUtf8()).object();
+    QString rseq, crn, in, out, err;
+    rseq = QString::number(tjson["rseq"].toInt());
+    crn = tjson["crn"].toString();
+    MTFileLog::createLog(__LOG_PRINT, QString("%1,%2, %3").arg(rseq, crn, dr.toString(0, "JSON")));
+    PrintTaxN pt(__cnfapp.taxIP(), __cnfapp.taxPort(), __cnfapp.taxPassword(), "true", "3", "3", this);
+    int result = pt.printTaxback(rseq, crn, in, out, err);
+    jReply["reply"] = result == 0 ? "ok" : QString("Error code: %1, description: %2").arg(QString::number(result), err);
+    MTFileLog::createLog(__LOG_PRINT, QString("Tax error: %1/%2").arg(QString::number(result), err));
+
+    QMap<QString, QVariant> v;
+    v[":fdate"] = QDateTime::currentDateTime();
+    v[":forder"] = QString("CF %1").arg(o["order"].toString());
+    v[":fin"] = in;
+    v[":fout"] = out;
+    v[":ferr"] = err;
+    v[":fresult"] = result;
+    fDb.insert("o_tax_log", v);
+
+    if (result == pt_err_ok) {
+        v.clear();
+        v[":fid"] = o["order"].toString();
+        fDb.select("delete from o_tax where fid=:fid", v, dr, false);
+    }
+
     return jsonreply(jReply);
 }
 

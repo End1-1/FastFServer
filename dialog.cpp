@@ -6,10 +6,9 @@
 #include "msqldatabase.h"
 #include "phonethread.h"
 #include "dlgconnection.h"
-#include "exchangeupload.h"
-#include "exchangedownload.h"
 #include "tablelocker.h"
 #include "cnfmaindb.h"
+#include "logwriter.h"
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QDesktopServices>
@@ -32,6 +31,8 @@ Dialog::Dialog(QWidget *parent) :
     fTimer.start(1000);
     ui->btnStore->setVisible(QFile::exists(qApp->applicationDirPath() + "/VeryFastF.exe"));
     ui->btnFastF->setVisible(QFile::exists(qApp->applicationDirPath() + "/FastF.exe"));
+    ui->btnSalary->setVisible(QFile::exists(qApp->applicationDirPath() + "/Cafe.exe"));
+    (new PhoneServerThread ());
     __logDialog = this;
 }
 
@@ -94,6 +95,7 @@ void Dialog::timeout()
 void Dialog::logMsg(const QString &msg)
 {
     qDebug() << msg;
+    LogWriter::write(LogWriterLevel::verbose, msg);
 }
 
 void Dialog::on_btnConnection_clicked()
@@ -187,21 +189,21 @@ void Dialog::on_btnShutDown_clicked()
 
 void Dialog::init()
 {
-    CnfApp::init(__cnfmaindb.fHost, __cnfmaindb.fDatabase, __cnfmaindb.fUser, __cnfmaindb.fPassword, "FASTF");
+    if (!CnfApp::init(__cnfmaindb.fHost, __cnfmaindb.fDatabase, __cnfmaindb.fUser, __cnfmaindb.fPassword, "FASTF")) {
+        fStartDelay = 0;
+        return;
+    }
     MJsonHandler::fServerIp = __cnfmaindb.fServerIP;
     MSqlDatabase::setConnectionParams(__cnfmaindb.fHost, __cnfmaindb.fDatabase, __cnfmaindb.fUser, __cnfmaindb.fPassword);
     fServer = new MTcpServer();
-    fServer->start();
+    auto *t = new QThread();
+    fServer->moveToThread(t);
+    connect(t, SIGNAL(started()), fServer, SLOT(run()));
+    t->start();
     ui->lbTax->setText(QString("Fiscal: IP:%1, port %2, dept: %3")
                        .arg(__cnfapp.taxIP())
                        .arg(__cnfapp.taxPort())
                        .arg(__cnfapp.taxDept()));
-
-    PhoneServerThread *pt = new PhoneServerThread();
-//    if (!__cnfapp.exchangeServer().isEmpty()) {
-//        ExchangeUpload *eu = new ExchangeUpload(this);
-//        ExchangeDownload *ed = new ExchangeDownload(this);
-//    }
 
     TableLocker *tl = new TableLocker();
     tl->start();
@@ -211,4 +213,10 @@ void Dialog::on_btnStore_clicked()
 {
     QProcess p;
     p.startDetached(qApp->applicationDirPath() + "/VeryFastF.exe");
+}
+
+void Dialog::on_btnSalary_clicked()
+{
+    QProcess p;
+    p.startDetached(qApp->applicationDirPath() + "/Cafe.exe");
 }

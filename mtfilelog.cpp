@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QDateTime>
 #include <QDebug>
+#include <QApplication>
 
 static QMutex ml;
 
@@ -28,6 +29,7 @@ void MTFileLog::createLog(const QString &logFile, const QStringList &logList)
 
 void MTFileLog::createLog(const QString &logFile, const QString &log)
 {
+    qDebug() << logFile << log;
     QStringList lst;
     lst << log;
     createLog(logFile, lst);
@@ -37,10 +39,10 @@ void MTFileLog::run()
 {
     QMutexLocker m(&ml);
     QDir dir;
-    if (!dir.exists("logs")) {
-        dir.mkdir("logs");
+    if (!dir.exists(qApp->applicationDirPath() + "/logs")) {
+        dir.mkdir(qApp->applicationDirPath() + "/logs");
     }
-    QFile file("logs/" + fLogFile + ".log");
+    QFile file(qApp->applicationDirPath() + "/logs/" + fLogFile + ".log");
     file.open(QIODevice::Append);
     QString begin = QDateTime::currentDateTime().toString("dd.MM.yyyy HH:mm:ss --- ");
     file.write(begin.toUtf8());

@@ -30,6 +30,7 @@ CONFIG += c++11
 
 SOURCES += \
         ../FastF/cnfapp.cpp \
+        ../FastF/dbdriver.cpp \
         ../FastF/qnet.cpp \
         ../LibQREncode/bitstream.c \
         ../LibQREncode/mask.c \
@@ -48,10 +49,7 @@ SOURCES += \
         databaseresult.cpp \
         dbmutexlocker.cpp \
         dlgconnection.cpp \
-        exchange/exchangedownload.cpp \
-        exchange/exchangeobject.cpp \
-        exchange/exchangeupload.cpp \
-        genqrcode.cpp \
+        logwriter.cpp \
         main.cpp \
         dialog.cpp \
         mdefined.cpp \
@@ -78,6 +76,7 @@ SOURCES += \
 
 HEADERS += \
         ../FastF/cnfapp.h \
+        ../FastF/dbdriver.h \
         ../FastF/qnet.h \
         ../LibQREncode/bitstream.h \
         ../LibQREncode/config.h \
@@ -100,10 +99,7 @@ HEADERS += \
         dbmutexlocker.h \
         dialog.h \
         dlgconnection.h \
-        exchange/exchangedownload.h \
-        exchange/exchangeobject.h \
-        exchange/exchangeupload.h \
-        genqrcode.h \
+        logwriter.h \
         mdefined.h \
         mjsonhandler.h \
         msqldatabase.h \
@@ -135,19 +131,21 @@ INCLUDEPATH += ./phonejson
 INCLUDEPATH += ./exchange
 INCLUDEPATH += C:/Projects/FastF
 INCLUDEPATH += C:/Projects/common
+INCLUDEPATH += C:/Projects/LibQREncode
 INCLUDEPATH += C:/projects/NewTax/Src
-INCLUDEPATH += C:/OpenSSL-Win32/include
-INCLUDEPATH += C:/OpenSSL-Win32/include/openssl
+INCLUDEPATH += C:/Soft/OpenSSL-Win32/include
+INCLUDEPATH += C:/Soft/OpenSSL-Win32/include/openssl
 
 LIBS += -lVersion
 LIBS += -lwsock32
-LIBS += -LC:/OpenSSL-Win32/lib
+LIBS += -LC:/Soft/OpenSSL-Win64/lib
 LIBS += -lopenssl
 LIBS += -llibcrypto
 
 DEFINES += FASTF
 DEFINES += _ORGANIZATION_=\\\"Jazzve\\\"
 DEFINES += _APPLICATION_=\\\"FastFServer\\\"
+DEFINES += _MODULE_=\\\"FastFServer\\\"
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

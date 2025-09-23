@@ -42,6 +42,8 @@ private slots:
     void on_btnShutDown_clicked();
     void on_btnStore_clicked();
 
+    void on_btnSalary_clicked();
+
 private:
     Ui::Dialog *ui;
     MTcpServer *fServer;

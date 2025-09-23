@@ -130,7 +130,7 @@ void MTPrintKitchen::printReceipt()
     QFont font(qApp->font());
     font.setPointSize(20);
     C5Printing p;
-    p.setSceneParams(650, 2700, QPrinter::Portrait);
+    p.setSceneParams(600, 2700, QPrinter::Portrait);
     p.setFont(font);
 
     QString imagePath = qApp->applicationDirPath() + "/logo_receipt.png";
@@ -179,7 +179,8 @@ void MTPrintKitchen::printReceipt()
     p.setFontSize(38);
     p.ltext(tr("Date"), 0);
     p.br();
-    p.ltext(fData["taxtime"], 0);
+    //p.ltext(fData["taxtime"], 0);
+    p.ltext(QDateTime::currentDateTime().toString("dd/MM/yyyy HH:mm"), 0);
     p.br();
     p.line(3);
     p.br(3);
@@ -266,7 +267,7 @@ void MTPrintKitchen::printReceipt()
     p.br();
     p.br();
     p.br();
-    p.ctext(tr("Payment avaiable with IDram"));
+    p.ctext(QString::fromUtf8("Վճարեք Idram-ով"));
     p.br();
 
     int levelIndex = 1;
@@ -274,12 +275,12 @@ void MTPrintKitchen::printReceipt()
     bool bExtent = true;
     int maskIndex = -1;
     QString encodeString = QString("%1;%2;%3;%4|%5;%6;")
-            .arg("Jazzve")
+            .arg("cahsback_qr_Jazzve")
             .arg(__cnfapp.idramId()) //IDram ID
             .arg(fData["amount"])
             .arg(fData["order"])
             .arg(__cnfapp.idramPhone())
-            .arg("1");
+            .arg("0");
 
     CQR_Encode qrEncode;
     bool successfulEncoding = qrEncode.EncodeData( levelIndex, versionIndex, bExtent, maskIndex, encodeString.toUtf8().data() );
