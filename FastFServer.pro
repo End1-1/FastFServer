@@ -29,116 +29,34 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-        ../FastF/cnfapp.cpp \
-        ../FastF/dbdriver.cpp \
-        ../FastF/qnet.cpp \
-        ../LibQREncode/bitstream.c \
-        ../LibQREncode/mask.c \
-        ../LibQREncode/mmask.c \
-        ../LibQREncode/mqrspec.c \
-        ../LibQREncode/qrenc.c \
-        ../LibQREncode/qrencode.c \
-        ../LibQREncode/qrinput.c \
-        ../LibQREncode/qrspec.c \
-        ../LibQREncode/rscode.c \
-        ../LibQREncode/split.c \
-        ../NewTax/Src/printtaxn.cpp \
-        QRCodeGenerator.cpp \
-        c5printing.cpp \
         cnfmaindb.cpp \
-        databaseresult.cpp \
-        dbmutexlocker.cpp \
         dlgconnection.cpp \
         logwriter.cpp \
         main.cpp \
         dialog.cpp \
         mdefined.cpp \
-        mjsonhandler.cpp \
-        msqldatabase.cpp \
-        mtcpserver.cpp \
         mtfilelog.cpp \
-        mtprintkitchen.cpp \
-        phoneclientthread.cpp \
-        phonejson.cpp \
-        phonejson/phonejsonbase.cpp \
-        phonejson/phonejsondishreminders.cpp \
-        phonejson/phonejsonreminderstate.cpp \
-        phonejson/threadobject.cpp \
-        phonethread.cpp \
-        pimage.cpp \
-        pprintscene.cpp \
-        ptextrect.cpp \
-        qsslserver.cpp \
-        qsystem.cpp \
-        sqlthread.cpp \
-        tablelocker.cpp \
-        tableorder.cpp
+        qsystem.cpp
 
 HEADERS += \
-        ../FastF/cnfapp.h \
-        ../FastF/dbdriver.h \
-        ../FastF/qnet.h \
-        ../LibQREncode/bitstream.h \
-        ../LibQREncode/config.h \
-        ../LibQREncode/getopt.h \
-        ../LibQREncode/mask.h \
-        ../LibQREncode/mmask.h \
-        ../LibQREncode/mqrspec.h \
-        ../LibQREncode/qrencode.h \
-        ../LibQREncode/qrencode_inner.h \
-        ../LibQREncode/qrinput.h \
-        ../LibQREncode/qrspec.h \
-        ../LibQREncode/rscode.h \
-        ../LibQREncode/split.h \
-        ../NewTax/Src/printtaxn.h \
-        ../common/fastfprotocol.h \
-        QRCodeGenerator.h \
-        c5printing.h \
         cnfmaindb.h \
-        databaseresult.h \
-        dbmutexlocker.h \
         dialog.h \
         dlgconnection.h \
         logwriter.h \
         mdefined.h \
-        mjsonhandler.h \
-        msqldatabase.h \
-        mtcpserver.h \
         mtfilelog.h \
-        mtprintkitchen.h \
-        pdefaults.h \
-        phoneclientthread.h \
-        phonejson.h \
-        phonejson/phonejsonbase.h \
-        phonejson/phonejsondishreminders.h \
-        phonejson/phonejsonreminderstate.h \
-        phonejson/threadobject.h \
-        phonethread.h \
-        pimage.h \
-        pprintscene.h \
-        ptextrect.h \
-        qsslserver.h \
-        qsystem.h \
-        sqlthread.h \
-        tablelocker.h \
-        tableorder.h
+        qsystem.h
 
 FORMS += \
         dialog.ui \
         dlgconnection.ui
 
-INCLUDEPATH += ./phonejson
-INCLUDEPATH += ./exchange
-INCLUDEPATH += C:/Projects/FastF
-INCLUDEPATH += C:/Projects/common
-INCLUDEPATH += C:/Projects/LibQREncode
-INCLUDEPATH += C:/projects/NewTax/Src
-INCLUDEPATH += C:/Soft/OpenSSL-Win32/include
-INCLUDEPATH += C:/Soft/OpenSSL-Win32/include/openssl
+INCLUDEPATH += C:/Soft/OpenSSLWin64/include
+INCLUDEPATH += C:/Soft/OpenSSLWin64/include/openssl
 
 LIBS += -lVersion
 LIBS += -lwsock32
-LIBS += -LC:/Soft/OpenSSL-Win64/lib
+LIBS += -LC:/soft/OpenSSLWin64/lib/VC/x64/MD
 LIBS += -lopenssl
 LIBS += -llibcrypto
 

@@ -4,7 +4,8 @@
 #include <QDialog>
 #include <QTimer>
 
-namespace Ui {
+namespace Ui
+{
 class Dialog;
 }
 
@@ -45,15 +46,14 @@ private slots:
     void on_btnSalary_clicked();
 
 private:
-    Ui::Dialog *ui;
-    MTcpServer *fServer;
+    Ui::Dialog* ui;
+    MTcpServer* fServer;
     QTimer fTimer;
     bool fExplorer;
     bool fCanClose;
     int fStartDelay;
-    void init();
 };
 
-extern Dialog *__logDialog;
+extern Dialog* __logDialog;
 
 #endif // DIALOG_H

@@ -21,22 +21,29 @@ CnfMainDb::CnfMainDb()
 {
     fOk = false;
     QSettings s(_ORGANIZATION_, _APPLICATION_);
-    if (s.value("db_ver").toInt() == 0) {
+
+    if(s.value("db_ver").toInt() == 0) {
         s.setValue("db_ver", db_ver);
     }
-    if (s.value("db_ver").toInt() != db_ver) {
+
+    if(s.value("db_ver").toInt() != db_ver) {
         return;
     }
+
     fOk = true;
     QByteArray buf = s.value("db").toByteArray();
-    for (int i = 0; i < buf.length(); i++) {
+
+    for(int i = 0; i < buf.length(); i++) {
         buf[i] = buf[i] ^ ((i % 2) + (i % 3) + (i % 4) + (i % 5) + (i % 6) + (i % 7) + (i % 8) + (i % 9));
     }
+
     QList<QByteArray> params = buf.split('\r');
-    if (params.count() < 9) {
+
+    if(params.count() < 9) {
         //QMessageBox::critical(0, "", "Invalid params count");
         return;
     }
+
     fHost = params.at(0);
     fDatabase = params.at(1);
     fUser = params.at(2);
@@ -51,27 +58,29 @@ CnfMainDb::CnfMainDb()
 void CnfMainDb::write()
 {
     QByteArray buf;
-    buf.append(fHost);
+    buf.append(fHost.toUtf8());
     buf.append('\r');
-    buf.append(fDatabase);
+    buf.append(fDatabase.toUtf8());
     buf.append('\r');
-    buf.append(fUser);
+    buf.append(fUser.toUtf8());
     buf.append('\r');
-    buf.append(fPassword);
+    buf.append(fPassword.toUtf8());
     buf.append('\r');
-    buf.append(fLastUsername);
+    buf.append(fLastUsername.toUtf8());
     buf.append('\r');
-    buf.append(fLastDatabase);
+    buf.append(fLastDatabase.toUtf8());
     buf.append('\r');
-    buf.append(fServerIP);
+    buf.append(fServerIP.toUtf8());
     buf.append('\r');
-    buf.append(fServerMode);
+    buf.append(fServerMode.toUtf8());
     buf.append('\r');
-    buf.append(fTaxDepartment);
+    buf.append(fTaxDepartment.toUtf8());
     buf.append('\r');
-    for (int i = 0; i < buf.length(); i++) {
+
+    for(int i = 0; i < buf.length(); i++) {
         buf[i] = buf[i] ^ ((i % 2) + (i % 3) + (i % 4) + (i % 5) + (i % 6) + (i % 7) + (i % 8) + (i % 9));
     }
+
     QSettings s(_ORGANIZATION_, _APPLICATION_);
     s.setValue("db", buf);
     s.setValue("db_ver", db_ver);
