@@ -6,6 +6,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QDesktopServices>
+#include <QApplication>
 #include <QSettings>
 #include <QProcess>
 #include <windows.h>
@@ -25,7 +26,7 @@ Dialog::Dialog(QWidget *parent) :
     fTimer.start(1000);
     ui->btnStore->setVisible(QFile::exists(qApp->applicationDirPath() + "/VeryFastF.exe"));
     ui->btnFastF->setVisible(QFile::exists(qApp->applicationDirPath() + "/FastF.exe"));
-    ui->btnSalary->setVisible(QFile::exists(qApp->applicationDirPath() + "/Cafe.exe"));
+    ui->btnSalary->setVisible("c:/fastf/Cafe4.exe");
     __logDialog = this;
 }
 
@@ -106,7 +107,7 @@ void Dialog::on_btnInstallShell_clicked()
     return;
 #else
     QSettings s("HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", QSettings::Registry64Format);
-    s.setValue("Shell", "C:\\FastF\\FastFServer.exe");
+    s.setValue("Shell", "\"" + qApp->applicationDirPath() + "\\FastFServer.exe\"");
 #endif
 }
 
@@ -170,8 +171,7 @@ void Dialog::on_btnRestart_clicked()
 {
     fTimer.stop();
     fCanClose = true;
-    QProcess p;
-    p.startDetached("shutdown -f -t 1 -r");
+    QProcess::startDetached("shutdown", QStringList() << "-r" << "-t" << "0" << "-f");
 }
 
 void Dialog::on_btnShutDown_clicked()
@@ -191,5 +191,5 @@ void Dialog::on_btnStore_clicked()
 void Dialog::on_btnSalary_clicked()
 {
     QProcess p;
-    p.startDetached(qApp->applicationDirPath() + "/Cafe.exe");
+    p.startDetached("c:/fastf/Cafe4.exe");
 }
